@@ -1,0 +1,25 @@
+{
+  "name": "@ila26/shared",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "prisma:generate": "cd prisma && bunx prisma generate --schema=./schema.prisma",
+    "prisma:migrate": "cd prisma && bunx prisma migrate dev --schema=./schema.prisma",
+    "prisma:studio": "cd prisma && bunx prisma studio --schema=./schema.prisma",
+    "prisma:seed": "cd prisma && bunx tsx seed.ts"
+  },
+  "prisma": {
+    "seed": "bunx tsx packages/shared/prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcrypt": "^6.0.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3"
+  }
+}

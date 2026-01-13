@@ -1,0 +1,43 @@
+{
+  "name": "ila26-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multi-tenant SaaS platform with enterprise management",
+  "scripts": {
+    "dev": "concurrently \"bun run dev:api\" \"bun run dev:admin-api\" \"bun run dev:ila26\" \"bun run dev:admin\"",
+    "dev:api": "cd apps/api && bun run start:dev",
+    "dev:admin-api": "cd apps/admin-api && bun run start:dev",
+    "dev:ila26": "cd apps/ila26 && bun run dev",
+    "dev:admin": "cd apps/admin-portal && bun run dev",
+    "build": "bun run build:api && bun run build:admin-api && bun run build:ila26 && bun run build:admin",
+    "build:api": "cd apps/api && bun run build",
+    "build:admin-api": "cd apps/admin-api && bun run build",
+    "build:ila26": "cd apps/ila26 && bun run build",
+    "build:admin": "cd apps/admin-portal && bun run build",
+    "test": "bun test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "bun@1.0.0",
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "axios": "^1.13.2",
+    "react-hook-form": "^7.71.0",
+    "zod": "^4.3.5",
+    "zustand": "^5.0.10"
+  }
+}

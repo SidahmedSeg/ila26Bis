@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "otps" ALTER COLUMN "code" SET DATA TYPE VARCHAR(255);
