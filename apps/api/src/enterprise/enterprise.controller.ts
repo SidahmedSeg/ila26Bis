@@ -18,6 +18,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody
 import { EnterpriseService } from './enterprise.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import {
   UpdateEnterpriseProfileDto,
   UpdateEnterpriseAddressDto,
@@ -49,18 +50,10 @@ export class EnterpriseController {
   @ApiResponse({ status: 404, description: 'Tenant not found' })
   async getProfile(@CurrentUser() user: any) {
     // Get tenant from user's memberships
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-      include: {
-        tenant: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.getProfile(membership.tenantId);
@@ -74,15 +67,10 @@ export class EnterpriseController {
     @CurrentUser() user: any,
     @Body() dto: UpdateEnterpriseProfileDto,
   ) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.updateProfile(membership.tenantId, dto);
@@ -114,15 +102,10 @@ export class EnterpriseController {
     @CurrentUser() user: any,
     @Body() dto: UpdateEnterpriseAddressDto,
   ) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.updateAddress(membership.tenantId, dto);
@@ -136,6 +119,7 @@ export class EnterpriseController {
     return this.googlePlacesService.autocomplete(dto.input, dto.countryCode);
   }
 
+  @Public()
   @Get('activities')
   @ApiOperation({ summary: 'Get all activity domains' })
   @ApiResponse({ status: 200, description: 'Activity domains retrieved successfully' })
@@ -143,6 +127,7 @@ export class EnterpriseController {
     return this.enterpriseService.getActivityDomains();
   }
 
+  @Public()
   @Get('specialities')
   @ApiOperation({ summary: 'Get specialities by activity domain' })
   @ApiResponse({ status: 200, description: 'Specialities retrieved successfully' })
@@ -172,15 +157,10 @@ export class EnterpriseController {
   @ApiResponse({ status: 201, description: 'Logo uploaded successfully', type: UploadLogoResponseDto })
   @ApiResponse({ status: 400, description: 'Invalid file type or size' })
   async uploadLogo(@CurrentUser() user: any, @UploadedFile() file: Express.Multer.File) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.uploadLogo(membership.tenantId, file);
@@ -190,15 +170,10 @@ export class EnterpriseController {
   @ApiOperation({ summary: 'Delete enterprise logo' })
   @ApiResponse({ status: 200, description: 'Logo deleted successfully' })
   async deleteLogo(@CurrentUser() user: any) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.deleteLogo(membership.tenantId);
@@ -222,15 +197,10 @@ export class EnterpriseController {
   @ApiResponse({ status: 201, description: 'Cover image uploaded successfully', type: UploadCoverResponseDto })
   @ApiResponse({ status: 400, description: 'Invalid file type or size' })
   async uploadCover(@CurrentUser() user: any, @UploadedFile() file: Express.Multer.File) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.uploadCover(membership.tenantId, file);
@@ -240,15 +210,10 @@ export class EnterpriseController {
   @ApiOperation({ summary: 'Delete enterprise cover image' })
   @ApiResponse({ status: 200, description: 'Cover image deleted successfully' })
   async deleteCover(@CurrentUser() user: any) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.deleteCover(membership.tenantId);
@@ -282,15 +247,10 @@ export class EnterpriseController {
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadDocumentDto,
   ) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.uploadDocument(
@@ -306,15 +266,10 @@ export class EnterpriseController {
   @ApiOperation({ summary: 'Get enterprise documents' })
   @ApiResponse({ status: 200, description: 'Documents retrieved successfully' })
   async getDocuments(@CurrentUser() user: any) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.getDocuments(membership.tenantId);
@@ -324,15 +279,10 @@ export class EnterpriseController {
   @ApiOperation({ summary: 'Delete enterprise document' })
   @ApiResponse({ status: 200, description: 'Document deleted successfully' })
   async deleteDocument(@CurrentUser() user: any, @Param('id') documentId: string) {
-    const membership = await this.enterpriseService['prisma'].tenantMembership.findFirst({
-      where: {
-        userId: user.id,
-        isOwner: true,
-      },
-    });
+    const membership = await this.enterpriseService.getUserTenantMembership(user.id);
 
     if (!membership) {
-      throw new Error('No tenant found for user');
+      throw new NotFoundException('No tenant found for user');
     }
 
     return this.enterpriseService.deleteDocument(membership.tenantId, documentId);

@@ -1,10 +1,11 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Controller, Post, Get, Body, HttpCode, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SendOtpDto, VerifyOtpDto, RegisterDto, GoogleOAuthRegisterDto } from './dto/register.dto';
 import { LoginDto, GoogleOAuthLoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { Public } from './decorators/public.decorator';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -70,6 +71,14 @@ export class AuthController {
   async googleOAuthLogin(@Body() googleOAuthLoginDto: GoogleOAuthLoginDto) {
     // TODO: Implement Google OAuth login
     throw new Error('Google OAuth login not yet implemented');
+  }
+
+  @Get('tenants')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user tenants list' })
+  @ApiResponse({ status: 200, description: 'Tenants retrieved successfully' })
+  async getTenants(@CurrentUser() user: any) {
+    return this.authService.getUserTenants(user.id);
   }
 }
 

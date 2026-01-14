@@ -16,17 +16,28 @@ export class EnterpriseService {
   ) {}
 
   /**
+   * Get user's tenant membership
+   */
+  async getUserTenantMembership(userId: string) {
+    return this.prisma.tenantMembership.findFirst({
+      where: {
+        userId,
+        isOwner: true,
+      },
+      include: {
+        tenant: true,
+      },
+    });
+  }
+
+  /**
    * Get enterprise profile for current tenant
    */
   async getProfile(tenantId: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: tenantId },
       include: {
-        subscription: {
-          include: {
-            plan: true,
-          },
-        },
+        subscription: true,
         activityDomain: true,
         speciality: true,
       },
@@ -41,6 +52,8 @@ export class EnterpriseService {
       name: tenant.name,
       siret: tenant.siret,
       kbis: tenant.kbis,
+      logoUrl: tenant.logoUrl,
+      coverImageUrl: tenant.coverImageUrl,
       activityDomain: tenant.activityDomain
         ? {
             id: tenant.activityDomain.id,
@@ -68,12 +81,6 @@ export class EnterpriseService {
             planTier: tenant.subscription.planTier,
             status: tenant.subscription.status,
             maxUsers: tenant.subscription.maxUsers,
-            plan: tenant.subscription.plan
-              ? {
-                  name: tenant.subscription.plan.name,
-                  features: tenant.subscription.plan.features || [],
-                }
-              : null,
           }
         : null,
     };

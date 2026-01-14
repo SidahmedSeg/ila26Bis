@@ -71,7 +71,7 @@ export class AuthService {
     return { message: 'OTP sent to your email' };
   }
 
-  async verifyOtp(email: string, code: string): Promise<{ verified: boolean }> {
+  async verifyOtp(email: string, code: string, markAsUsed = false): Promise<{ verified: boolean }> {
     const otp = await this.prisma.oTP.findFirst({
       where: { email },
       orderBy: { createdAt: 'desc' },
@@ -94,18 +94,21 @@ export class AuthService {
       throw new UnauthorizedException('Invalid OTP');
     }
 
-    // Mark OTP as used
-    await this.prisma.oTP.update({
-      where: { id: otp.id },
-      data: { used: true },
-    });
+    // Only mark as used if explicitly requested (e.g., during registration)
+    // This allows OTP to be verified first, then used for registration
+    if (markAsUsed) {
+      await this.prisma.oTP.update({
+        where: { id: otp.id },
+        data: { used: true },
+      });
+    }
 
     return { verified: true };
   }
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-    // Verify OTP first
-    await this.verifyOtp(registerDto.email, registerDto.otpCode);
+    // Verify OTP first and mark it as used (since registration completes the flow)
+    await this.verifyOtp(registerDto.email, registerDto.otpCode, true);
 
     // Check if password and confirm password match
     if (registerDto.password !== registerDto.confirmPassword) {
@@ -277,6 +280,49 @@ export class AuthService {
     // TODO: Extract email, name, profile picture from token
     // For now, throw error as this needs Google OAuth setup
     throw new BadRequestException('Google OAuth registration not yet implemented');
+  }
+
+  /**
+   * Get all tenants for a user
+   */
+  async getUserTenants(userId: string) {
+    const memberships = await this.prisma.tenantMembership.findMany({
+      where: {
+        userId,
+        tenant: {
+          status: 'ACTIVE',
+        },
+      },
+      include: {
+        tenant: {
+          include: {
+            activityDomain: true,
+          },
+        },
+        role: true,
+      },
+    });
+
+    // Sort manually: owners first, then by tenant name
+    const sortedMemberships = memberships.sort((a, b) => {
+      if (a.isOwner && !b.isOwner) return -1;
+      if (!a.isOwner && b.isOwner) return 1;
+      return a.tenant.name.localeCompare(b.tenant.name);
+    });
+
+    return sortedMemberships.map((membership) => ({
+      id: membership.tenant.id,
+      name: membership.tenant.name,
+      logoUrl: membership.tenant.logoUrl,
+      activityDomain: membership.tenant.activityDomain
+        ? {
+            id: membership.tenant.activityDomain.id,
+            name: membership.tenant.activityDomain.name,
+          }
+        : null,
+      role: membership.role.name,
+      isOwner: membership.isOwner,
+    }));
   }
 }
 
